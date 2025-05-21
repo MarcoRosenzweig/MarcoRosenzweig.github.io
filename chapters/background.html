@@ -1,0 +1,51 @@
+<p>
+  The singular value decomposition (SVD) is a fundamental matrix factorization technique
+  that expresses any real matrix \(A \in \mathbb{R}^{m \times n}\) as a product of three matrices: 
+  \[ A = U\Sigma V^T \] where the columns of \(U\) are the left singular vectors, the diagonal entries of 
+  \(\Sigma\) are the singular values (ordered from largest to smallest), and the columns of \(V\) 
+  are the right singular vectors. The SVD provides an optimal basis—in the least-squares sense—for 
+  representing the range and domain of the matrix using orthonormal vectors.
+<br>
+Proper Orthogonal Decomposition (POD) is a reduced-order modeling technique that leverages the SVD 
+to extract the most energetic modes from a dataset. 
+In the context of time-resolved simulations, POD identifies spatial structures (modes) that 
+optimally represent the system's behavior over time. 
+The key difference is interpretational: while the SVD is a general-purpose mathematical tool, 
+POD refers specifically to its application in extracting coherent structures from spatiotemporal data. 
+In POD, the left singular vectors \(U\) correspond to spatial modes, 
+the singular values \(\Sigma \) reflect the energy content of each mode, and the right singular vectors \(V\)
+describe the temporal evolution of each mode.
+<br>
+Typically, the matrix \(A \in \mathbb{R}^{m \times n}\) arises from time-resolved simulation or measurement data, where 
+\(m\) corresponds to the number of spatial degrees of freedom (e.g., grid points in a computational mesh), and 
+\(n\) corresponds to the number of temporal snapshots. 
+In many practical settings, especially in high-fidelity simulations, 
+\(m\gg n\) making \(A\) a tall-and-skinny matrix.
+<br>
+For high-fidelity data, this matrix can become very large, very quickly. 
+The number of grid points \(m\) may reach into the billions or more, such that 
+storing the full matrix \(A\) in memory of a single processor becomes unfeasible.
+As a result, the SVD cannot be computed on a single node and must instead be performed in a distributed manner across multiple processors or compute nodes. 
+<br>
+However, this becomes non-trivial as one would need to 'know' the entire matrix, right?
+Thankfully, mathematics offers a few solutions. 
+A very popular choice is to exploit the symmetry of the crossmatrix product \(A^TA\) which is of size \((m\times n)^T\times (m\times n)=n\times n\).
+Because of this, it must have an eigendecomposition \(A_{symm}=V\Lambda V^T\) with eigenvalues \(\Lambda\) and orthogonal eigenvectors \(V\):
+\[
+\begin{eqnarray}
+A^TA &=& \left(U\Sigma V^T\right)^T (U\Sigma V^T) \\
+ &=& V \Sigma U^T U \Sigma V^T \\
+ &=& V\Sigma^2 V^T
+\end{eqnarray}
+\]
+As a result, the eigenvalues of \(A^T A\) are the squared singular values of \(A\) and the right singular vectors of \(A\) form a basis of the eigenvectors of \(A^TA\).
+This is very advantageous because we now compute the SVD of \(A^T A\) which is of size \(n\times n \ll m\times n\).
+This also opens the door to a very straight forward parallelization strategy where we distributed \(A\) row-wise across MPI processes.
+Each MPI ranks holds a subset of the spatial dimensions, but holds the entire time series, such that:
+\[
+A = \begin{bmatrix} A_1 \\ A_2 \\ \vdots \\ A_{np} \end{bmatrix}
+\] 
+is distributed across \(np\) MPI ranks.
+Each MPI ranks performs the local matrix-matrix product \(A_i^T A_i\), which is then summed up across all MPI ranks via one \(MPI\_ALLREDUCE\) call and we can take the SVD on the resulting matrix to obtain the final SVD of \(A\).
+Sounds pretty simple hey? So let's start with establishing the MPI decomposition and MPI communicators.
+</p>

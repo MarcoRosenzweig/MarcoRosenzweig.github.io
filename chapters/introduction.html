@@ -1,0 +1,17 @@
+<p>
+The trend towards more compact and efficient low-pressure turbine (LPT) designs depends on accurately capturing the complex transitional and turbulent nature of unsteady flows in LPTs. 
+This often necessitates high-fidelity methods such as Large Eddy Simulations (LES) to achieve reliable predictions of turbine efficiency and loss generation. 
+In recent years, LES have become increasingly feasible, driven by continuous advancements in high-performance architectures, particularly through the use of accelerated graphical processing units (GPUs).
+These developments have enabled highly resolved parametric sweep studies of multi-stage LPT designs. 
+Traditionally, the vast amounts of data generated are analyzed using time-averaged or phase-locked-averaged techniques, which offer limited insight into the inherently unsteady and multi-scale mechanisms behind loss generation. 
+This technical blog seeks to complement conventional post-processing approaches by analyzing time-resolved data using proper orthogonal decomposition (POD) and spectral POD (SPOD). 
+Following the methodology in<sup><a href="#ref_pawel_01">[1]</a></sup>, the extracted POD modes are employed to reconstruct a stagnation pressure transport equation that governs efficiency, offering insights into mode-to-mode interactions and energy transfer rates linked to loss generation.
+</p>
+<div style="text-align: center;">
+<img id="thumbnail" src="images/Rosenzweig_AFMC24_wUoM.jpg" alt="Time-resolved flow field at high Reynolds number." onclick="openModal()" />
+<div style="font-size: 0.9em; color: #555; margin-top: 1px;">Having a look inside a low-pressure turbine stage mid-section (click to enlarge).</div>
+</div>
+<div id="modal" class="modal" onclick="closeModal()">
+  <span class="close">&times;</span>
+  <img class="modal-content" id="modalImage">
+</div>

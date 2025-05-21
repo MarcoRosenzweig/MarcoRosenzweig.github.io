@@ -1,0 +1,188 @@
+<blockquote>
+      How shall I write my code so fair,<br>
+      That BLAS routines may do their share?<br>
+      With matrix cores that hum and gleam,<br>
+      Or tensor ones that chase the dream.<br>
+<br>
+      These cores, with FLOPs that soar so high,<br>
+      Can make your loops near-leap and fly.<br>
+      So call on BLAS, it knows the way,<br>
+      Let GEMM guide your math ballet.<br>
+<br>
+      Yet heed this warning, subtle, sly - <br>
+      Not every BLAS will justify.<br>
+      Some split the work in ways unkind,<br>
+      And stall the gain you hoped to find.<br>
+<br>
+      Structure your data, layout with care,<br>
+      Ensure the shape is crisp and square.<br>
+      Align your math, your loops, your flow,<br>
+      So BLAS can shine and steal the show.<br>
+<br>
+      For science fast and code refined,<br>
+      Let hardware's might be well aligned.<br>
+      But study deep—each call, each case - <br>
+      Lest you invoke a slower race.”<br>
+</blockquote>
+
+<p>
+<pre class="line-numbers"><code class="language-fortran">
+    subroutine read_data(...)
+
+    ! import intra-block communicators !
+    use comms,only : comm_local
+    use stdtypes,only : MPI_MAX_READ
+    ! import block-local dimensions !
+    use globals,only : nxp,nyp,nzp,nvars
+    use mpi
+    ...
+
+    ! because we are dealing with potentially very large data,             !
+    ! it's always important to check the integer count of what is being    !
+    ! read in by the current processor which is limited to 2^31-1          !
+    ! (stored in MPI_MAX_READ)                                             !
+    integer(kind=8) :: iread_check
+    integer :: iread,ierr
+    iread_check = int(nxp,kind=8)*nyp*nzp*nvars
+    if (iread_check.gt.MPI_MAX_READ) then
+      write(*,"a") "iread too big!"
+      call MPI_ABORT(comm_local,-1,ierr)
+    endif
+    iread = nxp*nyp*nzp*nvars
+    ...
+    ! we have to be careful not to have too many reads !
+    ! which would otherwise overload the filesystem    !
+    ! with too many request and degrade IO bandwidth   !
+    do n=1,nfiles
+      filename = trim(file_list(n))
+      call MPI_FILE_OPEN(...)
+      call MPI_FILE_READ_ALL(...)
+#ifdef ACC_GPU
+        qio_p => data_read(:,:,:,:,n)
+!$acc update host(qio_p)
+#elif OMP_GPU
+        qio_p => data_read(:,:,:,:,n)
+!$omp target update to(qio_p) nowait depend(in: qio_p)
+#endif
+    end do
+    ...
+    end subroutine
+  </code></pre>
+
+  <pre class="line-numbers"><code class="language-fortran">
+    module hip_wrappers
+      implicit none
+
+      interface hip_xgemm_wrapper(A,B,C,...)
+   &            bind(c,name='hip_xgemm_wrapper')
+
+      use iso_c_binding,only : c_int,c_double
+      implicit none
+      real(c_double),dimensions(*),intent(in) :: A,B
+      real(c_double),dimensions(*),intent(out) :: C
+      integer(c_int),value :: lda,ldb,ldc
+
+      end interface
+    end module
+  </code></pre>
+
+  <pre class="line-numbers"><code class="language-cpp">
+#include "hip_headers.h"
+extern "C" 
+{
+  ...
+  void hip_xgemm_wrapper(...,stream_id) 
+  {
+    // create the handle //
+    HIP_HANDLE handle;
+    HIP_STATUS status = HIP_CREATE_HANDLE(&handle);
+    // set the handle to the acc stream passed via stream_id //
+    HIP_STREAM stream = (HIP_STREAM) HIP_GET_ACC_STREAM(stream_id);
+    // call gemm routine //
+    status = HIP_GEMM(handle,...)
+  }
+  ...
+}</code></pre>
+
+  <pre class="line-numbers"><code class="language-cpp">
+    #pragma once
+    #include &lt;openacc.h&gt;
+
+    #ifdef CUDA // NVIDIA GPUs
+    #include &lt;cuda_runtime.h&gt;
+    #include &lt;cublas_v2.h&gt;
+    #define HIP_STATUS cublasStatus_t
+    #define HIP_HANDLE cublasHandle_t
+    #define HIP_CREATE_HANDLE cublasCreate
+    #define HIP_DESTROY_HANDLE cublasDestroy
+    #define HIP_STREAM cublasStream_t
+    #define HIP_GET_ACC_STREAM acc_get_cuda_stream
+    #define HIP_GEMM cublasDgemm
+
+    #else // AMD GPUs
+    #include &lt;hip/hip_runtime.h&gt;
+    #include &lt;rocblas/rocblas.h&gt;
+    #define HIP_STATUS rocblas_status
+    #define HIP_HANDLE rocblas_handle
+    #define HIP_CREATE_HANDLE rocblas_create_handle
+    #define HIP_DESTROY_HANDLE rocblas_destroy_handle
+    #define HIP_STREAM hipStream_t
+    #define HIP_GET_ACC_STREAM acc_get_hip_stream
+    #define HIP_GEMM rocblas_gemm
+    #endif
+  </code></pre>
+  <pre class="line-numbers"><code class="language-bash">hipcc -x hip source/hip_kernels.hip.cpp ...
+nvcc  -x cu  source/hip_kernels.hip.cpp ...</code></pre>
+
+</p>
+
+  <!-- Prism CSS for syntax highlighting -->
+  <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.css" rel="stylesheet" />
+  <!-- Prism Core JS -->
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.js"></script>
+  <!-- Prism Autoloader plugin -->
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+  <!-- Line Numbers-->
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-clike.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-cpp.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-fortran.min.js"></script>
+
+  <script>
+  Prism.languages.fortran['preprocessor'] = {
+    pattern: /^#.*/m,
+    alias: 'preprocessor'  // you can use 'keyword' or 'directive' if you prefer
+  };
+  Prism.languages.insertBefore('fortran', 'comment', {
+    'preprocessor': Prism.languages.fortran['preprocessor']
+  });
+  Prism.languages.fortran['directive'] = {
+  pattern: /^!\$(acc|omp).*/m,
+  alias: 'directive'
+};
+
+Prism.languages.insertBefore('fortran', 'comment', {
+  'directive': Prism.languages.fortran['directive']
+});
+</script>
+<style>
+  pre[class*="language-"] {
+  max-height: 200px; /* Set fixed height */
+  overflow: auto;    /* Enable scrollbars if needed */
+  padding: 0em;      /* Keep some padding */
+  padding-left: 1em;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background: #f5f2f0; /* Match Prism theme background */
+  font-size: 0.9em;
+}
+  /* Prism preprocessor lines will be magenta */
+  .token.preprocessor {
+    color: magenta !important;
+  }
+  .token.directive {
+  color: green !important;
+}
+</style>

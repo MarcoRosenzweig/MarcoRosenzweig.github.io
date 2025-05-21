@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DISTRIBUTED PROPER ORTHOGONAL DECOMPOSITION</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/line-numbers/prism-line-numbers.css" rel="stylesheet" />
+</head>
+  <!-- <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> -->
+  <script id="MathJax-script" async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+  </script>
+
+<body>
+  <div class="container">
+    <h1>Leveraging Accelerated Compute Devices for Large-Scale Proper Orthogonal Decomposition and Subsequent Computations</h1>
+    <h2 class="subtitle">Marco Rosenzweig<br>PhD Candidate<br>The University of Melbourne<br> <a href="mailto:marco@rosenzweig@unimelb.edu.au">marco.rosenzweig@unimelb.edu.au</a> </h2>
+    
+    <div include-html="./chapters/introduction.html"></div>
+
+    <h2 id="chapter1">Background</h2>
+    <div include-html="./chapters/background.html"></div>
+    
+    <h2 id="chapter2">Chapter 2: Parallel Implementation</h2>
+
+    <h2 id="chapter3">Chapter 3: IO- and Data Transfer Tuning</h2>
+    <blockquote>
+      “Know your hardware.”
+    </blockquote>
+
+    <h2 id="chapter4">Chapter 4: GPU Offloading</h2>
+    <div include-html="./chapters/gpu_offloading.html"></div>
+
+    <h2 id="chapter5">Chapter 5: Strong Scaling Tests</h2>
+    <p>Conclusion or call to action.</p>
+
+    <h2 id="chapter5">Chapter 6: Some Physical Insights</h2>
+    <div include-html="./annimations/phase_tke/showme.html"></div>
+    
+    <h2 id="References">References</h2>
+    <ol>
+      <li id="ref_pawel_01">Przytarski, Pawel and Dellacasagrande, Matteo and Kozul, M and Agrawal, Rahul and Bose, Sanjee:
+        <i>Multiscale interactions within a multistage compressor</i>.
+         Proceedings of the 2024 Summer Program: Center for Turbulence Research, Stanford University, 2024.</li>
+    </ol>
+
+  </div>
+  <div class="sidebar">
+    <h3>Chapters</h3>
+    <ul>
+      <li><a href="#chapter1">Introduction</a></li>
+      <li><a href="#chapter2">Background</a></li>
+      <li><a href="#chapter3">Parallel Implementation</a></li>
+      <li><a href="#chapter4">Portable Interface Specifications</a></li>
+      <li><a href="#chapter5">Strong Scaling</a></li>
+      <li><a href="#References">References</a></li>
+    </ul>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
+
