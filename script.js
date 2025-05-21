@@ -69,3 +69,7 @@ function openModal() {
 function closeModal() {
   document.getElementById("modal").style.display = "none";
 }
+
+window.onload = function() {
+  Prism.highlightAll();
+};
