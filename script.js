@@ -57,15 +57,18 @@ async function includeHTML() {
 
 document.addEventListener('DOMContentLoaded', includeHTML);
 
-function openModal() {
-  const modal = document.getElementById("modal");
-  const modalImg = document.getElementById("modalImage");
-  const thumb = document.getElementById("thumbnail");
+// function openModal() {
+//   const modal = document.getElementById("modal");
+//   const modalImg = document.getElementById("modalImage");
+//   const thumb = document.getElementById("thumbnail");
 
-  modal.style.display = "block";
-  modalImg.src = thumb.src;
-}
-
+//   modal.style.display = "block";
+//   modalImg.src = thumb.src;
+// }
+  function openModal(imageSrc) {
+    document.getElementById('modalImage').src = imageSrc;
+    document.getElementById('modal').style.display = 'block';
+  }
 function closeModal() {
   document.getElementById("modal").style.display = "none";
 }

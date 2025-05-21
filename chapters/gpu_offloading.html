@@ -43,7 +43,10 @@
     ! (stored in MPI_MAX_READ)                                             !
     integer(kind=8) :: iread_check
     integer :: iread,ierr
-    iread_check = int(nxp,kind=8)*nyp*nzp*nvars
+    iread_check = int(nxp,kind=8)*
+   &              int(nyp,kind=8)*
+   &              int(nzp,kind=8)*
+   &              int(nvars,kind=8)
     if (iread_check.gt.MPI_MAX_READ) then
       write(*,"a") "iread too big!"
       call MPI_ABORT(comm_local,-1,ierr)
@@ -57,13 +60,6 @@
       filename = trim(file_list(n))
       call MPI_FILE_OPEN(...)
       call MPI_FILE_READ_ALL(...)
-#ifdef ACC_GPU
-        qio_p => data_read(:,:,:,:,n)
-!$acc update host(qio_p)
-#elif OMP_GPU
-        qio_p => data_read(:,:,:,:,n)
-!$omp target update to(qio_p) nowait depend(in: qio_p)
-#endif
     end do
     ...
     end subroutine
